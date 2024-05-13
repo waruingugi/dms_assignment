@@ -13,8 +13,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "role", "created_by"]
-        extra_kwargs = {"email": {"required": True}, "created_by": {"required": True}}
+        fields = ["id", "email", "first_name", "last_name", "role"]
+        extra_kwargs = {"email": {"required": True}, "id": {"read_only": True}}
 
     def create(self, validated_data):
         """Create the user instance and automatically add them permissions of their

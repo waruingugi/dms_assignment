@@ -160,13 +160,26 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
+    ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 
 # DRF Spectacular Settings for Swagger
-SPECTACULAR_SETTINGS = {}
+SPECTACULAR_SETTINGS = {
+    "AUTHENTICATION_WHITELIST": [
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "SWAGGER_UI_SETTINGS": {
+        "defaultModelsExpandDepth": -1,
+        "persistAuthorization": True,
+    },
+}
 
 # Celery settings
 CELERY_BROKER_URL = os.environ["REDIS_URL"]
