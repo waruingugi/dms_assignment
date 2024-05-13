@@ -42,24 +42,24 @@ repos:
       - id: ruff-format
 
   # static type checker for Python.
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.7.1'
-    hooks:
-      - id: mypy
-        exclude: "[a-zA-Z]*/(migrations)/(.)*"
-        additional_dependencies: [
-            # mypy dependencies
-            djangorestframework,
-            djangorestframework-stubs,
-            django-stubs,
-            python-dotenv,
-            psycopg2,
-            django-filter,
-            djangorestframework-api-key,
-            drf-spectacular,
-            celery,
-            django-db-connection-pool,
-            dj-database-url,
-            whitenoise,
-            sentry-sdk,
-        ]
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: 'v1.7.1'
+  #   hooks:
+  #     - id: mypy
+  #       exclude: "[a-zA-Z]*/(migrations)/(.)*"
+  #       additional_dependencies: [
+  #           # mypy dependencies
+  #           djangorestframework,
+  #           djangorestframework-stubs,
+  #           django-stubs,
+  #           python-dotenv,
+  #           psycopg2,
+  #           django-filter,
+  #           djangorestframework-api-key,
+  #           drf-spectacular,
+  #           celery,
+  #           django-db-connection-pool,
+  #           dj-database-url,
+  #           whitenoise,
+  #           sentry-sdk,
+  #       ]

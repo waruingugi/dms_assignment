@@ -10,7 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import os
+from os import path
 from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +26,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-xsk)z-w9v&*_oa&dbs@)@^+o--4fq%y$s!88a=@!mh8luqdfl3"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(int(os.environ["DEBUG"]))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1", ".fly.dev"]
+CSRF_TRUSTED_ORIGINS: list[str] = ["https://*.fly.dev"]
 
 
 # Application definition
@@ -37,10 +44,20 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Third party app
+    "rest_framework",
+    "rest_framework.authtoken",
+    "django_filters",
+    "rest_framework_api_key",
+    "drf_spectacular",
+    "whitenoise.runserver_nostatic",
+    # Apps
+    "commons",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -75,10 +92,18 @@ WSGI_APPLICATION = "dms.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
     }
 }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ["REDIS_URL"],
+    }
+}
+
+# AUTH_USER_MODEL = "authentication.User"
 
 
 # Password validation
@@ -105,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Nairobi"
 
 USE_I18N = True
 
@@ -117,7 +142,46 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# Absolute path to the directory static files should be collected to.
+# Don't put anything in this directory yourself; store your static files
+# in apps' "static/" subdirectories and in STATICFILES_DIRS.
+# Example: "/home/media/media.lawrence.com/static/"
+STATIC_ROOT = path.join(BASE_DIR, "static").replace("\\", "/")
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+
+SPECTACULAR_SETTINGS = {}
+
+
+# Celery settings
+CELERY_BROKER_URL = os.environ["REDIS_URL"]
+
+# try to load local_settings.py if it exists and DEBUG=True
+if DEBUG:
+    try:
+        from dms.local_settings import *  # noqa
+    except Exception as e:  # noqa
+        pass
+else:
+    # Parse database configuration from $DATABASE_URL
+    import dj_database_url  # noqa
+
+    prod_db = dj_database_url.config(conn_max_age=500)
+    DATABASES["default"].update(prod_db)
+
+    # Honor the 'X-Forwarded-Proto' header for request.is_secure()
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    PROJECT_ROOT = Path(__file__).resolve().parent
