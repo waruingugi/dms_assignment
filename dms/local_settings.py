@@ -13,14 +13,18 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from os import path
 from pathlib import Path
+from typing import List
 
 from dotenv import load_dotenv
-
-load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Path of the env file used in development
+ENV_PATH = os.path.join(BASE_DIR, ".env.local").replace("\\", "/")
+
+# Load environment variables
+load_dotenv(ENV_PATH, override=True)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -31,8 +35,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.environ["DEBUG"]))
 
-ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1", ".fly.dev"]
-CSRF_TRUSTED_ORIGINS: list[str] = ["https://*.fly.dev"]
+ALLOWED_HOSTS: List[str] = ["*"]
 
 
 # Application definition
@@ -49,7 +52,6 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "django_filters",
     "drf_spectacular",
-    "whitenoise.runserver_nostatic",
     # Apps
     "authentication",
     "commons",
@@ -57,7 +59,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -71,7 +72,7 @@ ROOT_URLCONF = "dms.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -84,7 +85,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "dms.wsgi.application"
+WSGI_APPLICATION = "dms.local_wsgi.application"
 
 
 # Database
@@ -92,7 +93,11 @@ WSGI_APPLICATION = "dms.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["DATABASE_NAME"],
+        "USER": os.environ["DATABASE_USER"],
+        "HOST": os.environ["DATABASE_HOST"],
+        "PASSWORD": os.environ["DATABASE_PASSWORD"],
     }
 }
 
@@ -104,7 +109,6 @@ CACHES = {
 }
 
 AUTH_USER_MODEL = "authentication.User"
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -148,7 +152,6 @@ STATIC_URL = "static/"
 # Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = path.join(BASE_DIR, "static").replace("\\", "/")
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -178,24 +181,5 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
-
 # Celery settings
 CELERY_BROKER_URL = os.environ["REDIS_URL"]
-
-# try to load local_settings.py if it exists and DEBUG=True
-if DEBUG:
-    try:
-        from dms.local_settings import *  # noqa
-    except Exception as e:  # noqa
-        pass
-else:
-    # Parse database configuration from $DATABASE_URL
-    import dj_database_url  # noqa
-
-    prod_db = dj_database_url.config(conn_max_age=500)
-    DATABASES["default"].update(prod_db)
-
-    # Honor the 'X-Forwarded-Proto' header for request.is_secure()
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-    PROJECT_ROOT = Path(__file__).resolve().parent

@@ -9,9 +9,8 @@ https://docs.djangoproject.com/en/5.0/howto/deployment/wsgi/
 
 import os
 
-from dj_static import Cling  # noqa
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dms.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dms.local_settings")
 
-application = Cling(get_wsgi_application())
+application = get_wsgi_application()
