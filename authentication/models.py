@@ -9,6 +9,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from commons.base_model import Base
+from commons.constants import UserRoles
 
 
 class SimpleUserManager(BaseUserManager):
@@ -69,6 +70,9 @@ class User(AbstractBaseUser, PermissionsMixin, Base):
         null=True,
         blank=True,
         related_name="created_users",
+    )
+    role = models.CharField(
+        max_length=20, choices=UserRoles.choices(), default=UserRoles.PATIENT
     )
 
     objects = SimpleUserManager()
