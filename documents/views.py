@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.generics import (
     CreateAPIView,
     DestroyAPIView,
@@ -7,7 +8,12 @@ from rest_framework.generics import (
 from rest_framework.parsers import FormParser, MultiPartParser
 
 from authentication.permissions import IsSuperAdminOrSeniorDoctor
-from documents.base_views import DocumentBaseView, DocumentTypeBaseView
+from documents.base_views import (
+    DocumentBaseView,
+    DocumentHistoryBaseView,
+    DocumentTypeBaseView,
+)
+from documents.models import Documents
 
 
 class DocumentUploadView(DocumentBaseView, CreateAPIView):
@@ -64,3 +70,19 @@ class DocumentTypeDeleteAPIView(DocumentTypeBaseView, DestroyAPIView):
 
     permission_classes = [IsSuperAdminOrSeniorDoctor]
     lookup_field = "id"
+
+
+class DocumentsHistoryListView(DocumentHistoryBaseView, ListAPIView):
+    """List all document history"""
+
+    pass
+
+
+class DocumentHistoryDetailView(DocumentHistoryBaseView, ListAPIView):
+    """Detailed document version"""
+
+    lookup_field = "id"
+
+    def get_queryset(self):
+        document = get_object_or_404(Documents, id=self.kwargs.get("id"))
+        return document.history.all()
