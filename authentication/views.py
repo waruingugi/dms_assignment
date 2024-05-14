@@ -41,6 +41,9 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
 
 class UserDeleteAPIView(DestroyAPIView):
+    """Delete a user"""
+
     queryset = User.objects.all()
+    serializer_class = UserSerializer
     permission_classes = [IsSuperAdminOrSeniorDoctor]
     lookup_field = "id"

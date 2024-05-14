@@ -1,36 +1,66 @@
-from rest_framework import status
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import (
+    CreateAPIView,
+    DestroyAPIView,
+    ListAPIView,
+    RetrieveUpdateAPIView,
+)
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from documents.models import DocumentType
-from documents.serializers import DocumentSerializer, DocumentTypeSerializer
+from authentication.permissions import IsSuperAdminOrSeniorDoctor
+from documents.base_views import DocumentBaseView, DocumentTypeBaseView
 
 
-class DocumentUploadView(APIView):
+class DocumentUploadView(DocumentBaseView, CreateAPIView):
     """Handle file uploads"""
 
     parser_classes = (MultiPartParser, FormParser)
-    serializer_class = DocumentSerializer
 
-    def post(self, request, *args, **kwargs):
-        """Upload a document"""
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            document = serializer.save(created_by=request.user)
-            # Serialize the instance again to capture all fields including those set by the save method
-            response_serializer = DocumentSerializer(document)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 
 
-class DocumentTypeCreateView(CreateAPIView):
-    queryset = DocumentType.objects.all()
-    serializer_class = DocumentTypeSerializer
+class DocumentListAPIView(DocumentBaseView, ListAPIView):
+    """List documents"""
+
+    pass
+
+
+class DocumentRetrieveUpdateAPIView(DocumentBaseView, RetrieveUpdateAPIView):
+    """Retrieve a document"""
+
+    lookup_field = "id"
+
+
+class DocumentDeleteAPIView(DocumentBaseView, DestroyAPIView):
+    """Delete a document"""
+
+    permission_classes = [IsSuperAdminOrSeniorDoctor]
+    lookup_field = "id"
+
+
+class DocumentTypeCreateView(DocumentTypeBaseView, CreateAPIView):
+    """Create a document type."""
 
     def get_serializer_context(self) -> dict:
         context = super().get_serializer_context()
         context["request"] = self.request
         return context
+
+
+class DocumentTypeListAPIView(DocumentTypeBaseView, ListAPIView):
+    """List documents types"""
+
+    pass
+
+
+class DocumentTypeRetrieveUpdateAPIView(DocumentTypeBaseView, RetrieveUpdateAPIView):
+    """Retrieve a document type"""
+
+    lookup_field = "id"
+
+
+class DocumentTypeDeleteAPIView(DocumentTypeBaseView, DestroyAPIView):
+    """Delete a document type"""
+
+    permission_classes = [IsSuperAdminOrSeniorDoctor]
+    lookup_field = "id"
