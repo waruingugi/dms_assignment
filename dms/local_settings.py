@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django_filters",
     "drf_spectacular",
     "storages",
+    "simple_history",
     # Apps
     "authentication",
     "commons",
@@ -67,6 +68,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 ROOT_URLCONF = "dms.urls"
@@ -173,6 +175,7 @@ REST_FRAMEWORK = {
 
 # DRF Spectacular Settings for Swagger
 SPECTACULAR_SETTINGS = {
+    "COMPONENT_SPLIT_REQUEST": True,
     "AUTHENTICATION_WHITELIST": [
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.TokenAuthentication",
@@ -190,7 +193,7 @@ CELERY_BROKER_URL = os.environ["REDIS_URL"]
 REMOTE_STORAGE = bool(int(os.environ.get("REMOTE_STORAGE", 0)))
 
 if REMOTE_STORAGE:
-    MAX_FILE_SIZE_MB = 10
+    MAX_FILE_SIZE_MB = 10 * 1024 * 1024
     AWS_DEFAULT_ACL = "public-read"
     AWS_S3_REGION_NAME = os.environ["AWS_S3_REGION_NAME"]
     AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
@@ -202,9 +205,9 @@ if REMOTE_STORAGE:
     }
     AWS_LOCATION = "static"
 
-    STATICFILES_DIRS = [
-        "static",
-    ]
+    # STATICFILES_DIRS = [
+    #     "static",
+    # ]
     STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
     STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 

@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "whitenoise.runserver_nostatic",
     "storages",
+    "simple_history",
     # Apps
     "authentication",
     "commons",
@@ -66,6 +67,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 ROOT_URLCONF = "dms.urls"
@@ -152,7 +154,7 @@ STATIC_ROOT = path.join(BASE_DIR, "static").replace("\\", "/")
 
 # STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-MAX_FILE_SIZE_MB = 10
+MAX_FILE_SIZE_MB = 10 * 1024 * 1024
 
 AWS_DEFAULT_ACL = "public-read"
 
@@ -175,9 +177,9 @@ DOCUMENT_STORAGE = "documents.storage_backends.DocumentStorage"
 PUBLIC_MEDIA_LOCATION = "media"
 PUBLIC_MEDIA_STORAGE = "documents.storage_backends.PublicMediaStorage"
 
-STATICFILES_DIRS = [
-    "static",
-]
+# STATICFILES_DIRS = [
+#     "static",
+# ]
 STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
 STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
@@ -199,6 +201,7 @@ REST_FRAMEWORK = {
 
 # DRF Spectacular Settings for Swagger
 SPECTACULAR_SETTINGS = {
+    "COMPONENT_SPLIT_REQUEST": True,
     "AUTHENTICATION_WHITELIST": [
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.TokenAuthentication",
