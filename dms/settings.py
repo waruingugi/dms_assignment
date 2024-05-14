@@ -50,9 +50,12 @@ INSTALLED_APPS = [
     "django_filters",
     "drf_spectacular",
     "whitenoise.runserver_nostatic",
+    "storages",
+    "simple_history",
     # Apps
     "authentication",
     "commons",
+    "documents",
 ]
 
 MIDDLEWARE = [
@@ -64,6 +67,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 ROOT_URLCONF = "dms.urls"
@@ -140,7 +144,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
+# STATIC_URL = "static/"
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
@@ -148,7 +152,36 @@ STATIC_URL = "static/"
 # Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = path.join(BASE_DIR, "static").replace("\\", "/")
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+MAX_FILE_SIZE_MB = 10 * 1024 * 1024
+
+AWS_DEFAULT_ACL = "public-read"
+
+AWS_S3_REGION_NAME = os.environ["AWS_S3_REGION_NAME"]
+AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
+AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+AWS_STORAGE_BUCKET_NAME = os.environ["AWS_STORAGE_BUCKET_NAME"]
+
+AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+AWS_S3_OBJECT_PARAMETERS = {
+    "CacheControl": "max-age=86400",
+}
+AWS_LOCATION = "static"
+
+# Default file storage
+DOCUMENT_LOCATION = "documents"
+DOCUMENT_STORAGE = "documents.storage_backends.DocumentStorage"
+
+# public media settings
+PUBLIC_MEDIA_LOCATION = "media"
+PUBLIC_MEDIA_STORAGE = "documents.storage_backends.PublicMediaStorage"
+
+# STATICFILES_DIRS = [
+#     "static",
+# ]
+STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
+STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -168,6 +201,13 @@ REST_FRAMEWORK = {
 
 # DRF Spectacular Settings for Swagger
 SPECTACULAR_SETTINGS = {
+    "TITLE": "Document Management API",
+    "VERSION": "1.0.0",
+    "DESCRIPTION": """
+        A simple document management api for Intellisoft.
+        Github repository: https://github.com/waruingugi/dms_assignment
+    """,
+    "COMPONENT_SPLIT_REQUEST": True,
     "AUTHENTICATION_WHITELIST": [
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.TokenAuthentication",
@@ -177,7 +217,6 @@ SPECTACULAR_SETTINGS = {
         "persistAuthorization": True,
     },
 }
-
 
 # Celery settings
 CELERY_BROKER_URL = os.environ["REDIS_URL"]

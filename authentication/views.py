@@ -1,3 +1,5 @@
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from rest_framework.generics import (
     CreateAPIView,
     DestroyAPIView,
@@ -30,6 +32,15 @@ class UserListAPIView(ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsStaffPermission]
 
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.OrderingFilter,
+        filters.SearchFilter,
+    ]
+    search_fields = ["first_name", "last_name", "email"]
+    filterset_fields = ["is_verified", "is_staff"]
+    ordering_fields = ["created_at"]
+
 
 class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     """Retrieve a user"""
@@ -41,6 +52,9 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
 
 class UserDeleteAPIView(DestroyAPIView):
+    """Delete a user"""
+
     queryset = User.objects.all()
+    serializer_class = UserSerializer
     permission_classes = [IsSuperAdminOrSeniorDoctor]
     lookup_field = "id"
