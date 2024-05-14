@@ -201,6 +201,12 @@ REST_FRAMEWORK = {
 
 # DRF Spectacular Settings for Swagger
 SPECTACULAR_SETTINGS = {
+    "TITLE": "Document Management API",
+    "VERSION": "1.0.0",
+    "DESCRIPTION": """
+        A simple document management api for Intellisoft.
+        Github repository: https://github.com/waruingugi/dms_assignment
+    """,
     "COMPONENT_SPLIT_REQUEST": True,
     "AUTHENTICATION_WHITELIST": [
         "rest_framework.authentication.BasicAuthentication",
