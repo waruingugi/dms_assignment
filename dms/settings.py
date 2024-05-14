@@ -212,9 +212,6 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
-SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
-
-
 # Celery settings
 CELERY_BROKER_URL = os.environ["REDIS_URL"]
 

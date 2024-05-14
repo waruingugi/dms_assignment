@@ -70,3 +70,10 @@ class DocumentTypeSerializer(serializers.ModelSerializer):
         request = self.context["request"]
         validated_data["created_by"] = request.user
         return super().create(validated_data)
+
+
+class DocumentVersionUpdateSerializer(serializers.Serializer):
+    document_id = serializers.CharField()
+    history_id = serializers.IntegerField()
+
+    extra_kwargs = {"hsitory_id": {"required": True}, "document_id": {"required": True}}

@@ -1,5 +1,6 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
 
 from authentication.permissions import IsStaffPermission, IsSuperAdminOrSeniorDoctor
 from documents.models import Documents, DocumentType
@@ -7,6 +8,7 @@ from documents.serializers import (
     DocumentHistorySerializer,
     DocumentSerializer,
     DocumentTypeSerializer,
+    DocumentVersionUpdateSerializer,
 )
 
 
@@ -32,4 +34,12 @@ class DocumentTypeBaseView(GenericAPIView):
 class DocumentHistoryBaseView(GenericAPIView):
     serializer_class = DocumentHistorySerializer
     queryset = Documents.history.all()
+    permission_classes = [IsSuperAdminOrSeniorDoctor]
+
+
+@extend_schema(tags=["Documents History"])
+class DocumentBaseVersionUpdateView(APIView):
+    """Revert document to a specific version."""
+
+    serializer_class = DocumentVersionUpdateSerializer
     permission_classes = [IsSuperAdminOrSeniorDoctor]

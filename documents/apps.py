@@ -6,4 +6,4 @@ class DocumentsConfig(AppConfig):
     name = "documents"
 
     def ready(self):
-        pass  # type: ignore
+        import documents.signals  # noqa

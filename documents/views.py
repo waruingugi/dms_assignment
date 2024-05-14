@@ -1,4 +1,6 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.generics import (
     CreateAPIView,
     DestroyAPIView,
@@ -6,9 +8,11 @@ from rest_framework.generics import (
     RetrieveUpdateAPIView,
 )
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.response import Response
 
 from authentication.permissions import IsSuperAdminOrSeniorDoctor
 from documents.base_views import (
+    DocumentBaseVersionUpdateView,
     DocumentBaseView,
     DocumentHistoryBaseView,
     DocumentTypeBaseView,
@@ -86,3 +90,47 @@ class DocumentHistoryDetailView(DocumentHistoryBaseView, ListAPIView):
     def get_queryset(self):
         document = get_object_or_404(Documents, id=self.kwargs.get("id"))
         return document.history.all()
+
+
+class DocumentVersionUpdateView(DocumentBaseVersionUpdateView):
+    def post(self, request, *args, **kwargs):
+        """Revert document to a specific version."""
+        serializer = self.serializer_class(data=request.data)
+
+        if serializer.is_valid():
+            document_id = serializer.validated_data["document_id"]
+            history_id = serializer.validated_data["history_id"]
+
+            try:
+                document = Documents.objects.get(id=document_id)
+                historical_record = document.history.get(history_id=history_id)
+
+                # Create a new instance from historical record
+                new_document = Documents(
+                    type=historical_record.type,
+                    created_by=historical_record.created_by,
+                    patient=historical_record.patient,
+                    notes=historical_record.notes,
+                    file=historical_record.file,  # Make sure to handle file fields appropriately
+                    is_deleted=historical_record.is_deleted,
+                    deleted_at=historical_record.deleted_at,
+                    deleted_by=historical_record.deleted_by,
+                )
+                new_document.save()
+
+            except Documents.DoesNotExist:
+                return Response(
+                    {"message": "Document not found."}, status=status.HTTP_404_NOT_FOUND
+                )
+            except ValidationError:
+                return Response(
+                    {"message": "UUID record not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            return Response(
+                {"message": "Document version updated successfully."},
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
