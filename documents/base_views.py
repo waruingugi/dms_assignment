@@ -13,6 +13,13 @@ from documents.serializers import (
 
 
 @extend_schema(tags=["Documents"])
+class DocumentDownloadBaseView(APIView):
+    """A lite version of the document base view"""
+
+    permission_classes = [IsStaffPermission]
+
+
+@extend_schema(tags=["Documents"])
 class DocumentBaseView(GenericAPIView):
     """Base Document View"""
 

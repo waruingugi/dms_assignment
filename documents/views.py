@@ -1,6 +1,9 @@
+import requests
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status
 from rest_framework.generics import (
     CreateAPIView,
     DestroyAPIView,
@@ -14,6 +17,7 @@ from authentication.permissions import IsSuperAdminOrSeniorDoctor
 from documents.base_views import (
     DocumentBaseVersionUpdateView,
     DocumentBaseView,
+    DocumentDownloadBaseView,
     DocumentHistoryBaseView,
     DocumentTypeBaseView,
 )
@@ -32,7 +36,19 @@ class DocumentUploadView(DocumentBaseView, CreateAPIView):
 class DocumentListAPIView(DocumentBaseView, ListAPIView):
     """List documents"""
 
-    pass
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.OrderingFilter,
+        filters.SearchFilter,
+    ]
+    search_fields = [
+        "patient__first_name",
+        "patient__last_name",
+        "patient__email",
+        "notes",
+    ]
+    filterset_fields = ["is_deleted"]
+    ordering_fields = ["created_at"]
 
 
 class DocumentRetrieveUpdateAPIView(DocumentBaseView, RetrieveUpdateAPIView):
@@ -60,7 +76,12 @@ class DocumentTypeCreateView(DocumentTypeBaseView, CreateAPIView):
 class DocumentTypeListAPIView(DocumentTypeBaseView, ListAPIView):
     """List documents types"""
 
-    pass
+    filter_backends = [
+        filters.OrderingFilter,
+        filters.SearchFilter,
+    ]
+    search_fields = ["type", "description"]
+    ordering_fields = ["created_at"]
 
 
 class DocumentTypeRetrieveUpdateAPIView(DocumentTypeBaseView, RetrieveUpdateAPIView):
@@ -134,3 +155,24 @@ class DocumentVersionUpdateView(DocumentBaseVersionUpdateView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DocumentDownloadView(DocumentDownloadBaseView):
+    def get(self, request, *args, **kwargs):
+        """Download a file"""
+        document = get_object_or_404(Documents, id=self.kwargs.get("id"))
+
+        response = requests.get(document.file.url, stream=True)
+        if response.status_code != 200:
+            return Response(
+                {"message": "Failed to fetch file."}, status=response.status_code
+            )
+
+        # Create a HTTP response with the stream and correct content type
+        file_response = HttpResponse(
+            response.content, content_type=response.headers["Content-Type"]
+        )
+        file_response["Content-Disposition"] = (
+            'attachment; filename="%s"' % document.file.name
+        )
+        return file_response

@@ -2,6 +2,7 @@ from django.urls import path
 
 from documents.views import (
     DocumentDeleteAPIView,
+    DocumentDownloadView,
     DocumentListAPIView,
     DocumentRetrieveUpdateAPIView,
     DocumentUploadView,
@@ -22,5 +23,8 @@ urlpatterns = [
         "document/<str:id>/delete/",
         DocumentDeleteAPIView.as_view(),
         name="document-delete",
+    ),
+    path(
+        "download/<str:id>/", DocumentDownloadView.as_view(), name="document-download"
     ),
 ]
