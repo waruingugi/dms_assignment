@@ -1,0 +1,48 @@
+# fly.toml app configuration file generated for intellisoft-dms on 2024-05-15T01:29:53+03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'intellisoft-dms'
+primary_region = 'jnb'
+kill_signal = 'SIGINT'
+kill_timeout = '10s'
+
+[build]
+  dockerfile = 'docker/Dockerfile'
+
+[env]
+  DJANGO_SETTINGS_MODULE = 'dms.settings'
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8000
+  processes = ['app']
+
+  [[services.ports]]
+    port = 80
+    handlers = ['http']
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ['tls', 'http']
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.tcp_checks]]
+    interval = '15s'
+    timeout = '2s'
+    grace_period = '1s'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 2
+
+[[statics]]
+  guest_path = '/app/static'
+  url_prefix = '/static'

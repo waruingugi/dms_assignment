@@ -7,8 +7,8 @@ from commons.constants import UserRoles
 class UserSerializer(serializers.ModelSerializer):
     """User fields required when making a request"""
 
-    first_name = serializers.CharField(max_length=10, required=True)
-    last_name = serializers.CharField(max_length=10, required=False, allow_blank=True)
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
     role = serializers.ChoiceField(choices=UserRoles.choices(), required=False)
 
     class Meta:

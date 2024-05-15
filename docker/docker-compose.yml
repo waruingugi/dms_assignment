@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+    image: dms
+    networks:
+      - dms-backend-network
+    container_name: dms-api
+    restart: always
+    volumes:
+      - .:/dms
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+volumes:
+  db_data:
+
+networks:
+  dms-backend-network:
+    name: dms-backend-network
