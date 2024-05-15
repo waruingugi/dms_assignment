@@ -58,8 +58,8 @@ class SimpleUserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin, Base):
     """A custom user model"""
 
-    first_name = models.CharField(_("First Name"), max_length=10, blank=True, null=True)
-    last_name = models.CharField(_("Last Name"), max_length=10, blank=True, null=True)
+    first_name = models.CharField(_("First Name"), blank=True, null=True)
+    last_name = models.CharField(_("Last Name"), blank=True, null=True)
     email = models.EmailField(_("Email address"), unique=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -71,9 +71,7 @@ class User(AbstractBaseUser, PermissionsMixin, Base):
         blank=True,
         related_name="created_users",
     )
-    role = models.CharField(
-        max_length=20, choices=UserRoles.choices(), default=UserRoles.PATIENT
-    )
+    role = models.CharField(choices=UserRoles.choices(), default=UserRoles.PATIENT)
 
     objects = SimpleUserManager()
 

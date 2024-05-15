@@ -50,7 +50,7 @@ class Documents(Base):
         null=True,
         help_text=_("Notes you would like to accompany this document"),
     )
-    file = models.FileField(storage=DocumentStorage())
+    file = models.FileField(storage=DocumentStorage(), default="")
     history = HistoricalRecords()
 
     class Meta:

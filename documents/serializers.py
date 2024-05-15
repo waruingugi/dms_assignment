@@ -74,6 +74,6 @@ class DocumentTypeSerializer(serializers.ModelSerializer):
 
 class DocumentVersionUpdateSerializer(serializers.Serializer):
     document_id = serializers.CharField()
-    history_id = serializers.IntegerField()
+    history_id = serializers.CharField()
 
     extra_kwargs = {"history_id": {"required": True}, "document_id": {"required": True}}
